@@ -235,6 +235,7 @@ void to_json(nlohmann::json &json, const Drv &drv) {
     if (auto constituents = drv.constituents) {
         json["constituents"] = constituents->constituents;
         json["namedConstituents"] = constituents->namedConstituents;
+        json["globConstituents"] = constituents->globConstituents;
     }
 
     if (drv.cacheStatus != Drv::CacheStatus::Unknown) {

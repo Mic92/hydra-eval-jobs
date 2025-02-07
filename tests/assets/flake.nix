@@ -77,6 +77,60 @@
               '';
           doesnteval = pkgs.writeText "constituent" (toString { });
         };
+        glob1 = {
+          constituentA = pkgs.runCommand "constituentA" { } "touch $out";
+          constituentB = pkgs.runCommand "constituentB" { } "touch $out";
+          aggregate = pkgs.runCommand "aggregate" {
+            _hydraAggregate = true;
+            _hydraGlobConstituents = true;
+            constituents = [ "*" ];
+          } "touch $out";
+        };
+        cycle = {
+          aggregate0 = pkgs.runCommand "aggregate0" {
+            _hydraAggregate = true;
+            _hydraGlobConstituents = true;
+            constituents = [ "aggregate1" ];
+          } "touch $out";
+          aggregate1 = pkgs.runCommand "aggregate1" {
+            _hydraAggregate = true;
+            _hydraGlobConstituents = true;
+            constituents = [ "aggregate0" ];
+          } "touch $out";
+        };
+        glob2 = rec {
+          packages = pkgs.recurseIntoAttrs {
+            constituentA = pkgs.runCommand "constituentA" { } "touch $out";
+            constituentB = pkgs.runCommand "constituentB" { } "touch $out";
+          };
+          aggregate0 = pkgs.runCommand "aggregate0" {
+            _hydraAggregate = true;
+            _hydraGlobConstituents = true;
+            constituents = [
+              "packages.*"
+            ];
+          } "touch $out";
+          aggregate1 = pkgs.runCommand "aggregate1" {
+            _hydraAggregate = true;
+            _hydraGlobConstituents = true;
+            constituents = [
+              "tests.*"
+            ];
+          } "touch $out";
+          indirect_aggregate0 = pkgs.runCommand "indirect_aggregate0" {
+            _hydraAggregate = true;
+            constituents = [
+              "aggregate0"
+            ];
+          } "touch $out";
+          mix_aggregate0 = pkgs.runCommand "mix_aggregate0" {
+            _hydraAggregate = true;
+            constituents = [
+              "aggregate0"
+              packages.constituentA
+            ];
+          } "touch $out";
+        };
       };
     };
 }

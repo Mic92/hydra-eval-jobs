@@ -3,6 +3,7 @@ src = [
   'eval-args.cc',
   'drv.cc',
   'buffered-io.cc',
+  'constituents.cc',
   'worker.cc',
   'strings-portable.cc'
 ]

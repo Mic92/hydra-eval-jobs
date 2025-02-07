@@ -21,10 +21,13 @@ struct PackageInfo;
 struct Constituents {
     std::vector<std::string> constituents;
     std::vector<std::string> namedConstituents;
+    bool globConstituents;
     Constituents(std::vector<std::string> constituents,
-                 std::vector<std::string> namedConstituents)
+                 std::vector<std::string> namedConstituents,
+                 bool globConstituents)
         : constituents(std::move(constituents)),
-          namedConstituents(std::move(namedConstituents)) {};
+          namedConstituents(std::move(namedConstituents)),
+          globConstituents(globConstituents) {};
 };
 
 /* The fields of a derivation that are printed in json form */

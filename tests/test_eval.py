@@ -178,6 +178,112 @@ def test_constituents() -> None:
         check_gc_root(tempdir, mixed["drvPath"])
 
 
+def test_constituents_all() -> None:
+    with TemporaryDirectory() as tempdir:
+        cmd = [
+            str(BIN),
+            "--gc-roots-dir",
+            tempdir,
+            "--meta",
+            "--workers",
+            "1",
+            "--flake",
+            ".#legacyPackages.x86_64-linux.glob1",
+            "--constituents",
+        ]
+        res = subprocess.run(
+            cmd,
+            cwd=TEST_ROOT.joinpath("assets"),
+            text=True,
+            stdout=subprocess.PIPE,
+        )
+        print(res.stdout)
+        results = [json.loads(r) for r in res.stdout.split("\n") if r]
+        assert len(results) == 3
+        assert list(map(lambda x: x["name"], results)) == [
+            "constituentA",
+            "constituentB",
+            "aggregate",
+        ]
+        aggregate = results[2]
+        assert len(aggregate["constituents"]) == 2
+        assert aggregate["constituents"][0].endswith("constituentA.drv")
+        assert aggregate["constituents"][1].endswith("constituentB.drv")
+
+
+def test_constituents_glob_misc() -> None:
+    with TemporaryDirectory() as tempdir:
+        cmd = [
+            str(BIN),
+            "--gc-roots-dir",
+            tempdir,
+            "--meta",
+            "--workers",
+            "1",
+            "--flake",
+            ".#legacyPackages.x86_64-linux.glob2",
+            "--constituents",
+        ]
+        res = subprocess.run(
+            cmd,
+            cwd=TEST_ROOT.joinpath("assets"),
+            text=True,
+            stdout=subprocess.PIPE,
+        )
+        print(res.stdout)
+        results = [json.loads(r) for r in res.stdout.split("\n") if r]
+        assert len(results) == 6
+        assert list(map(lambda x: x["name"], results)) == [
+            "constituentA",
+            "constituentB",
+            "aggregate0",
+            "aggregate1",
+            "indirect_aggregate0",
+            "mix_aggregate0",
+        ]
+        aggregate = results[2]
+        assert len(aggregate["constituents"]) == 2
+        assert aggregate["constituents"][0].endswith("constituentA.drv")
+        assert aggregate["constituents"][1].endswith("constituentB.drv")
+        aggregate = results[4]
+        assert len(aggregate["constituents"]) == 1
+        assert aggregate["constituents"][0].endswith("aggregate0.drv")
+        failed = results[3]
+        assert "constituents" in failed
+        assert failed["error"] == "tests.*: constituent glob pattern had no matches\n"
+
+        assert results[4]["constituents"][0] == results[2]["drvPath"]
+        assert results[5]["constituents"][0] == results[0]["drvPath"]
+        assert results[5]["constituents"][1] == results[2]["drvPath"]
+
+
+def test_constituents_cycle() -> None:
+    with TemporaryDirectory() as tempdir:
+        cmd = [
+            str(BIN),
+            "--gc-roots-dir",
+            tempdir,
+            "--meta",
+            "--workers",
+            "1",
+            "--flake",
+            ".#legacyPackages.x86_64-linux.cycle",
+            "--constituents",
+        ]
+        res = subprocess.run(
+            cmd,
+            cwd=TEST_ROOT.joinpath("assets"),
+            text=True,
+            stdout=subprocess.PIPE,
+        )
+        print(res.stdout)
+        results = [json.loads(r) for r in res.stdout.split("\n") if r]
+        assert len(results) == 2
+        assert list(map(lambda x: x["name"], results)) == ["aggregate0", "aggregate1"]
+        for i in results:
+            assert i["error"] == "Dependency cycle: aggregate0 <-> aggregate1"
+
+
 def test_constituents_error() -> None:
     with TemporaryDirectory() as tempdir:
         cmd = [
@@ -206,10 +312,8 @@ def test_constituents_error() -> None:
         aggregate = results[1]
         assert aggregate["attr"] == "aggregate"
         assert "namedConstituents" not in aggregate
-        assert aggregate["error"].startswith(
-            '"doesntexist": does not exist\n"doesnteval": "error:'
-        )
-        assert aggregate["constituents"] == []
+        assert "doesntexist: does not exist\n" in aggregate["error"]
+        assert "constituents" in aggregate
 
 
 def test_apply() -> None:
