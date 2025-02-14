@@ -9,12 +9,19 @@
   inputs.nix-github-actions.url = "github:nix-community/nix-github-actions";
   inputs.nix-github-actions.inputs.nixpkgs.follows = "nixpkgs";
 
+  inputs.nix.url = "github:Mic92/nix-1";
+  inputs.nix.inputs.nixpkgs.follows = "nixpkgs";
+  inputs.nix.inputs.flake-parts.follows = "";
+  inputs.nix.inputs.flake-compat.follows = "";
+  inputs.nix.inputs.git-hooks-nix.follows = "";
+  inputs.nix.inputs.nixpkgs-23-11.follows = "";
+  inputs.nix.inputs.nixpkgs-regression.follows = "";
+
   outputs =
     inputs@{ flake-parts, ... }:
     let
       inherit (inputs.nixpkgs) lib;
       inherit (inputs) self;
-      nixVersion = lib.fileContents ./.nix-version;
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = inputs.nixpkgs.lib.systems.flakeExposed;
@@ -43,12 +50,17 @@
       };
 
       perSystem =
-        { pkgs, self', ... }:
+        {
+          inputs',
+          pkgs,
+          self',
+          ...
+        }:
         let
           drvArgs = {
             srcDir = self;
-            nix =
-              if nixVersion == "latest" then pkgs.nixVersions.latest else pkgs.nixVersions."nix_${nixVersion}";
+            nix = inputs'.nix.packages.nix;
+            #if nixVersion == "latest" then pkgs.nixVersions.latest else pkgs.nixVersions."nix_${nixVersion}";
           };
         in
         {

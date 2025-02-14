@@ -20,6 +20,31 @@
         "type": "github"
       }
     },
+    "nix": {
+      "inputs": {
+        "flake-compat": [],
+        "flake-parts": [],
+        "git-hooks-nix": [],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-23-11": [],
+        "nixpkgs-regression": []
+      },
+      "locked": {
+        "lastModified": 1736235979,
+        "narHash": "sha256-ilwz1Dl0iadEPdmjYsxYqockRwZLoWZM4N2SzWkwLjg=",
+        "owner": "Mic92",
+        "repo": "nix-1",
+        "rev": "65c242171fc757a00c0e39b2dc5254ecceaaafe3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "repo": "nix-1",
+        "type": "github"
+      }
+    },
     "nix-github-actions": {
       "inputs": {
         "nixpkgs": [
@@ -59,6 +84,7 @@
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
+        "nix": "nix",
         "nix-github-actions": "nix-github-actions",
         "nixpkgs": "nixpkgs",
         "treefmt-nix": "treefmt-nix"
