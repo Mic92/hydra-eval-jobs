@@ -120,7 +120,7 @@ MyArgs::MyArgs() : MixCommonArgs("nix-eval-jobs") {
             // overriden inputs are unlocked
             lockFlags.allowUnlocked = true;
             lockFlags.inputOverrides.insert_or_assign(
-                nix::flake::parseInputPath(inputPath),
+                nix::flake::parseInputAttrPath(inputPath),
                 nix::parseFlakeRef(nix::fetchSettings, flakeRef,
                                    nix::absPath(std::filesystem::path(".")),
                                    true));
